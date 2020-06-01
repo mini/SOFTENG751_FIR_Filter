@@ -1,0 +1,22 @@
+# Program related
+*.dat
+*.wav
+
+# Visual Studio
+*.sln
+*.vcxproj*
+
+.vs
+x64/
+x86/
+Debug/
+Releases/
+
+# C++
+*.exe
+*.out
+
+*.slo
+*.lo
+*.o
+*.obj
