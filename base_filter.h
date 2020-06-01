@@ -15,5 +15,5 @@ class filter::BaseFilter {
 public:
 	void setup(void) {};
 	void cleanup(void) {};
-	void doFilter(float* inputs, uint64_t length, float* weights, uint64_t weightsLength, float* output) {};
+	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {};
 };

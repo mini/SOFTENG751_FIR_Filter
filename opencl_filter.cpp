@@ -12,13 +12,13 @@ namespace filter {
 
 class filter::OpenCLTimeDomain: public filter::BaseFilter {
 public:
-	void doFilter(float* inputs, uint64_t length, float* weights, uint64_t weightsLength, float* output) {
+	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
 		// Set args
-		samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, length * sizeof(float), inputs, &err);
+		samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
 		checkError(err, "clCreateBuffer 0");
 		weightsBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, weightsLength * sizeof(float), weights, &err);
 		checkError(err, "clCreateBuffer 1");
-		outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, (length + weightsLength) * sizeof(float), output, &err);
+		outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, (inputLength + weightsLength) * sizeof(float), output, &err);
 		checkError(err, "clCreateBuffer 2");
 
 		err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &samplesBuffer);
@@ -31,7 +31,7 @@ public:
 		checkError(err, "clSetKernelArg 3");
 
 		// Run
-		size_t globalDimension = length + weightsLength;
+		size_t globalDimension = inputLength + weightsLength;
 		err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &globalDimension, NULL, 0, NULL, NULL);
 		checkError(err, "clEnqueueNDRangeKernel");
 
@@ -40,7 +40,7 @@ public:
 		err = clFinish(command_queue);
 		checkError(err, "clFinish");
 
-		err = clEnqueueReadBuffer(command_queue, outputBuffer, CL_TRUE, 0, (length + weightsLength) * sizeof(float), output, 0, NULL, NULL);
+		err = clEnqueueReadBuffer(command_queue, outputBuffer, CL_TRUE, 0, (inputLength + weightsLength) * sizeof(float), output, 0, NULL, NULL);
 		checkError(err, "clEnqueueReadBuffer");
 	}
 

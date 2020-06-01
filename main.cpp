@@ -5,22 +5,18 @@ int main(int argc, char** argv) {
 	
 	const char* filterName;
 	const char* inputsPath;
-	uint64_t length;
+	uint64_t intputsLength;
 	const char* weightsPath;
-	uint64_t length;
+	uint64_t weightsLength; // calc later
 	const char* outputPath;
-	
-	filter::BaseFilter* chosenFilter;
-
-
-
+	const char* expectedOutputPath;
 	
 }
 
-void runFilter(filter::BaseFilter* filter, float* inputs, uint64_t length, float* weights, uint64_t weightsLength, float* output) {
+void runFilter(filter::BaseFilter* filter, float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
 	filter->setup();
 	START_TIMER;
-	filter->doFilter(NULL,NULL,NULL,NULL,NULL);
+	filter->doFilter(input, inputLength, weights, weightsLength, output);
 	STOP_TIMER;
 	filter->cleanup();
 }
