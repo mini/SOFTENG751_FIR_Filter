@@ -12,48 +12,8 @@ namespace filter {
 
 class filter::OpenCLTimeDomain: public filter::BaseFilter {
 public:
-	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
-		// Set args
-		samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
-		checkError(err, "clCreateBuffer 0");
-		weightsBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, weightsLength * sizeof(float), weights, &err);
-		checkError(err, "clCreateBuffer 1");
-		outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, (inputLength + weightsLength) * sizeof(float), output, &err);
-		checkError(err, "clCreateBuffer 2");
 
-		err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &samplesBuffer);
-		checkError(err, "clSetKernelArg 0");
-		err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &weightsBuffer);
-		checkError(err, "clSetKernelArg 1");
-		err = clSetKernelArg(kernel, 2, sizeof(cl_ulong), &weightsLength);
-		checkError(err, "clSetKernelArg 2");
-		err = clSetKernelArg(kernel, 3, sizeof(cl_mem), &outputBuffer);
-		checkError(err, "clSetKernelArg 3");
-
-		// Run
-		size_t globalDimension = inputLength + weightsLength;
-		err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &globalDimension, NULL, 0, NULL, NULL);
-		checkError(err, "clEnqueueNDRangeKernel");
-
-
-		// Read results
-		err = clFinish(command_queue);
-		checkError(err, "clFinish");
-
-		err = clEnqueueReadBuffer(command_queue, outputBuffer, CL_TRUE, 0, (inputLength + weightsLength) * sizeof(float), output, 0, NULL, NULL);
-		checkError(err, "clEnqueueReadBuffer");
-	}
-
-private:
-	cl_int err;
-	cl_context context;
-	cl_kernel kernel;
-	cl_command_queue command_queue;
-	
-	cl_mem samplesBuffer, weightsBuffer, outputBuffer;
-	cl_program program;
-
-	void setup(void) {
+	OpenCLTimeDomain(void) {
 
 		// Get platforms
 		cl_uint num_platforms;
@@ -140,7 +100,7 @@ private:
 		checkError(err, "clCreateKernel");
 	}
 
-	void cleanup() {
+	~OpenCLTimeDomain() {
 		clReleaseMemObject(samplesBuffer);
 		clReleaseMemObject(weightsBuffer);
 		clReleaseMemObject(outputBuffer);
@@ -149,6 +109,47 @@ private:
 		clReleaseCommandQueue(command_queue);
 		clReleaseContext(context);
 	}
+
+	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
+		// Set args
+		samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
+		checkError(err, "clCreateBuffer 0");
+		weightsBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, weightsLength * sizeof(float), weights, &err);
+		checkError(err, "clCreateBuffer 1");
+		outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, (inputLength + weightsLength) * sizeof(float), output, &err);
+		checkError(err, "clCreateBuffer 2");
+
+		err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &samplesBuffer);
+		checkError(err, "clSetKernelArg 0");
+		err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &weightsBuffer);
+		checkError(err, "clSetKernelArg 1");
+		err = clSetKernelArg(kernel, 2, sizeof(cl_ulong), &weightsLength);
+		checkError(err, "clSetKernelArg 2");
+		err = clSetKernelArg(kernel, 3, sizeof(cl_mem), &outputBuffer);
+		checkError(err, "clSetKernelArg 3");
+
+		// Run
+		size_t globalDimension = inputLength + weightsLength;
+		err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &globalDimension, NULL, 0, NULL, NULL);
+		checkError(err, "clEnqueueNDRangeKernel");
+
+
+		// Read results
+		err = clFinish(command_queue);
+		checkError(err, "clFinish");
+
+		err = clEnqueueReadBuffer(command_queue, outputBuffer, CL_TRUE, 0, (inputLength + weightsLength) * sizeof(float), output, 0, NULL, NULL);
+		checkError(err, "clEnqueueReadBuffer");
+	}
+
+private:
+	cl_int err;
+	cl_context context;
+	cl_kernel kernel;
+	cl_command_queue command_queue;
+	
+	cl_mem samplesBuffer, weightsBuffer, outputBuffer;
+	cl_program program;
 
 	static const char* readFile(const char* filename, cl_int* err) {
 		FILE* file = fopen(filename, "rb");
