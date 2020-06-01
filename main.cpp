@@ -5,6 +5,7 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG 
 	printf("DEBUG MODE\n");
 	const char* filterName = "basictd";
+	//const char* filterName = "basictd";
 	const char* inputsPath = "floats.dat";
 	const char* weightsPath = "weights.txt";
 	const char* outputPath = "output.txt";

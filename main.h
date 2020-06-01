@@ -30,5 +30,3 @@ void usage(void);
 void checkWinAPIError(const char* location);
 float* readTextFloats(const char* filename, uint64_t* length);
 float* mapInputFile(const char* filename, uint64_t* length);
-
-

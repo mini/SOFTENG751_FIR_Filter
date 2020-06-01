@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
+#include <iterator>
+#include <fstream>
+
 #include "base_filter.h"
 #include "CL/cl.h"
 
@@ -60,7 +63,7 @@ public:
 			free(devices);
 		}
 
-		// Printing some device version info
+#ifdef _DEBUG // Printing device version info
 		err = clGetPlatformInfo(platform, CL_PLATFORM_PROFILE, 4096, msg, NULL);
 		checkError(err, "clGetPlatformInfo");
 		printf("\t%s\n", msg);
@@ -70,6 +73,7 @@ public:
 		err = clGetPlatformInfo(platform, CL_PLATFORM_VERSION, 4096, msg, NULL);
 		checkError(err, "clGetPlatformInfo");
 		printf("\t%s\n", msg);
+#endif
 
 		// Make context
 		cl_context_properties props[]{ CL_CONTEXT_PLATFORM, (cl_context_properties)platform, 0 };
@@ -77,13 +81,13 @@ public:
 		checkError(err, "clCreateContext");
 
 		// Make command queue
-		// fyi 3rd arg can enable profiling
 		command_queue = clCreateCommandQueue(context, device, 0, &err);
 		checkError(err, "clCreateCommandQueue");
 
 		// Get and build kernel
-		const char* src = readFile("filter.cl", &err);
+		std::string contents = readFile("filter.cl", &err);
 		checkError(err, "readFile");
+		const char* src = contents.c_str();
 		size_t source_size = strlen(src);
 		program = clCreateProgramWithSource(context, 1, &src, &source_size, &err);
 		checkError(err, "clCreateProgramWithSource");
@@ -93,7 +97,6 @@ public:
 			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(msg), msg, NULL);
 			fprintf(stderr, "%s\n", msg);
 		}
-		delete[] src;
 
 		// Create new kernel
 		kernel = clCreateKernel(program, "filter", &err);
@@ -129,7 +132,7 @@ public:
 		checkError(err, "clSetKernelArg 3");
 
 		// Run
-		size_t globalDimension = inputLength + weightsLength;
+		const size_t globalDimension = inputLength + weightsLength;
 		err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &globalDimension, NULL, 0, NULL, NULL);
 		checkError(err, "clEnqueueNDRangeKernel");
 
@@ -151,23 +154,14 @@ private:
 	cl_mem samplesBuffer, weightsBuffer, outputBuffer;
 	cl_program program;
 
-	static const char* readFile(const char* filename, cl_int* err) {
-		FILE* file = fopen(filename, "rb");
-
-		if (!file) {
-			*err = -1;
-			return NULL;
-		}
-
-		fseek(file, 0, SEEK_END);
-		size_t size = ftell(file);
-
-		char* src = new char[size];
-		rewind(file);
-		fread(src, sizeof(char), size, file);
-
-		printf("\n-----Kernel------\n%s\n--------------\n\n", src);
-		return src;
+	std::string readFile(const char* filename, cl_int* err) {
+		std::ifstream file(filename, std::ios::binary | std::ios::in);
+		std::string contents{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+		file.close();
+#ifdef _DEBUG
+		printf("\n-----Kernel Source------\n%s\n--------------\n\n", contents.c_str());
+#endif
+		return contents;
 	}
 
 	static void checkError(cl_int error, const char* name) {
