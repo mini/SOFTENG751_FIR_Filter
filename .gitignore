@@ -13,6 +13,9 @@ x86/
 Debug/
 Releases/
 
+# VS Code
+.vscode/
+
 # C++
 *.exe
 *.out

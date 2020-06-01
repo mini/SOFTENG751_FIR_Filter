@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 	//TODO choose parser based on .txt vs .dat/.bin
 	inputs = mapInputFile(inputsPath, &inputsLength);
 	weights = readTextFloats(weightsPath, &weightsLength);
-	output = new float[inputsLength + weightsLength];
+	output = new float[inputsLength + weightsLength]{ 0 };
 
 	if (filter) {
 		START_TIMER;
@@ -74,9 +74,15 @@ float* readTextFloats(const char* filename, uint64_t* length) {
 	while (std::getline(fs, line)) {
 		floats.push_back((float)atof(line.c_str()));
 	}
+
 	fs.close();
 	*length = floats.size();
-	return &floats[0];
+
+	// TODO Shouldn't copy array.
+	// Can't think of a way to return the vector's backend without deallocation problems
+	float* f = new float[*length];
+	std::copy(floats.begin(), floats.end(), f);
+	return f;
 }
 
 /* For when you have gigabytes of data */
