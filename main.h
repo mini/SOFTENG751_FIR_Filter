@@ -8,6 +8,9 @@
 #include <chrono>
 #include <vector>
 
+#ifndef UNICODE
+	#define UNICODE
+#endif
 #include <windows.h>
 
 
@@ -24,10 +27,8 @@
 	printf("Time: %llu\n", stop - start)
 
 void usage(void);
+void checkWinAPIError(const char* location);
 float* readTextFloats(const char* filename, uint64_t* length);
 float* mapInputFile(const char* filename, uint64_t* length);
 
-typedef struct InputFile {
-	uint64_t totalSamples;
-	float* samples;
-} InputFile;
+

@@ -15,7 +15,7 @@
 #define DEFAULT_SAMPLES 10
 #define AMPLITUDE 1.0f
 
-void generate(const char* filename, uint64_t points, uint64_t samples, uint64_t totalSamples, bool output);
+void generate(const char* filename, uint64_t points, uint64_t samples, bool output);
 void usage(void);
 
 int main(int argc, char** argv) {
@@ -26,8 +26,7 @@ int main(int argc, char** argv) {
 	const char* filename = argv[1];
 	const uint64_t points = atoll(argv[2]);
 	const uint64_t samples = (argc < 4) ? DEFAULT_SAMPLES : atoll(argv[3]);
-	const uint64_t totalSamples = points * samples;
-	const uint64_t fileSize = sizeof(uint64_t) + totalSamples * sizeof(float);
+	const uint64_t fileSize = points * samples * sizeof(float);
 
 	if (!points || !samples) {
 		usage();
@@ -49,7 +48,7 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	generate(filename, points, samples, totalSamples, true);
+	generate(filename, points, samples, true);
 
 	return 0;
 }
@@ -59,11 +58,9 @@ void usage(void) {
 	exit(1);
 }
 
-void generate(const char* filename, uint64_t points, uint64_t samples, uint64_t totalSamples, bool output) {
+void generate(const char* filename, uint64_t points, uint64_t samples, bool output) {
 
 	std::ofstream file (filename, std::ios::binary | std::ios::out);
-
-	file.write(reinterpret_cast<const char *>(&totalSamples), sizeof(uint64_t));
 
 	std::uniform_real_distribution<float> uniform(-AMPLITUDE, AMPLITUDE);
 	std::default_random_engine re;

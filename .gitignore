@@ -1,5 +1,6 @@
 # Program related
 *.dat
+*.txt
 *.wav
 
 # Visual Studio

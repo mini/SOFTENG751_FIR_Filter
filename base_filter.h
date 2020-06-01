@@ -13,5 +13,5 @@ namespace filter {
 
 class filter::BaseFilter {
 public:
-	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {};
+	virtual void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) = 0;
 };
