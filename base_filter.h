@@ -1,11 +1,6 @@
 #pragma once
-#include <stdint.h>
 
-/*
-	When you add a new filter:
-		- Include new filter in main.h
-		- Add parameter mapping in main.cpp
-*/
+#include <stdint.h>
 
 namespace filter {
 	class BaseFilter;

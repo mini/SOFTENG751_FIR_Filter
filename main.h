@@ -9,12 +9,9 @@
 #include <vector>
 #include <algorithm>
 
-#include "input_file.cpp"
-
-// Keep this up to date!
-#include "base_filter.h"
-#include "basic_filter.cpp"
-#include "opencl_filter.cpp"
+#include "file_utils.h"
+#include "basic_filter.h"
+#include "opencl_filter.h"
 
 #define START_TIMER \
 	uintmax_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()

@@ -4,11 +4,11 @@ int main(int argc, char** argv) {
 
 #ifdef _DEBUG 
 	printf("DEBUG MODE\n");
+	//std::string filterName = "opencltd";
 	std::string filterName = "basictd";
-	//std::string filterName = "basictd";
 	std::string inputsPath = "small.dat";
 	std::string weightsPath = "weights.txt";
-	std::string outputPath = "output.txt";
+	std::string outputPath = "output.dat";
 #else
 	if (argc < 4) {
 		usage();
@@ -32,24 +32,27 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	InputFile *inputs = new InputFile(inputsPath);
-	InputFile *weights = new InputFile(weightsPath);
-	float* output = new float[inputs->length + weights->length]{ 0 };
+	filter::InputFile *inputs = new filter::InputFile(inputsPath);
+	filter::InputFile *weights = new filter::InputFile(weightsPath);
+	uint64_t outputLength = inputs->length + weights->length;
+	float* output = new float[outputLength]{ 0 };
 
 	START_TIMER;
 	filter->doFilter(inputs->samples, inputs->length, weights->samples, weights->length, output);
 	STOP_TIMER;
 
-	//TODO write to output file instead
 #ifdef _DEBUG
-	for (int i = 0; i < std::min(20, (int)(inputs->length + weights->length)); i++) {
-		printf("%f %f\n", i < inputs->length ? inputs->samples[i] : 0.0f, output[i]);
+	for (int i = 0; i < std::min(20, (int) outputLength); i++) {
+		printf("%f %f\n", i < inputs->length ? inputs->samples[i] : 0.0, output[i]);
 	}
 #endif
 
 	delete filter;
 	delete inputs;
 	delete weights;
+
+	printf("Writing output to file\n");
+	filter::writeOutputToFile(outputPath, output, outputLength);
 
 	//TODO Testing
 	//const char* expectedOutputPath;
