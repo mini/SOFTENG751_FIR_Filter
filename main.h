@@ -7,12 +7,9 @@
 #include <fstream>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 
-#ifndef UNICODE
-	#define UNICODE
-#endif
-#include <windows.h>
-
+#include "input_file.cpp"
 
 // Keep this up to date!
 #include "base_filter.h"
@@ -27,6 +24,3 @@
 	printf("Time: %llu\n", stop - start)
 
 void usage(void);
-void checkWinAPIError(const char* location);
-float* readTextFloats(const char* filename, uint64_t* length);
-float* mapInputFile(const char* filename, uint64_t* length);
