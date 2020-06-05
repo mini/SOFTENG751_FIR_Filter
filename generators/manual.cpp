@@ -14,6 +14,10 @@ int main(int argc, char** argv) {
 
 	const char* filename = argv[1];
 	std::ofstream file (filename, std::ios::binary | std::ios::out);
+	if (!file.is_open()) {
+		printf("Can't write to destination file\n");
+		exit(1);
+	}
 
     std::string line;
     while(std::getline(std::cin, line)) {

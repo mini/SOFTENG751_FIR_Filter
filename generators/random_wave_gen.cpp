@@ -3,7 +3,6 @@
 	Basically picks N random points and smoothstep-lerps to it within M samples.
 
 	File format:
-		int64_t : num samples
 		float[] : float array containing samples
 */
 #include <stdlib.h>
@@ -54,13 +53,17 @@ int main(int argc, char** argv) {
 }
 
 void usage(void) {
-	printf("Usage: generate <filename> <num samples> [samples per points (def 10)]\n");
+	printf("Usage: generate <filename> <num samples> [samples per points (default 10)]\n");
 	exit(1);
 }
 
 void generate(const char* filename, uint64_t points, uint64_t samples, bool output) {
 
 	std::ofstream file (filename, std::ios::binary | std::ios::out);
+	if (!file.is_open()) {
+		printf("Can't write to destination file\n");
+		exit(1);
+	}
 
 	std::uniform_real_distribution<float> uniform(-AMPLITUDE, AMPLITUDE);
 	std::default_random_engine re;

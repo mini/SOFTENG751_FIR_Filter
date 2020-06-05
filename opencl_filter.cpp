@@ -144,6 +144,12 @@ void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, floa
 
 std::string filter::OpenCLTimeDomain::readFile(const char* filename, cl_int* err) {
 	std::ifstream file(filename, std::ios::binary | std::ios::in);
+	
+	if (!file.is_open()) {
+		printf("Can't open kernel source file\n");
+		exit(1);
+	}
+
 	std::string contents{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
 	file.close();
 #ifdef _DEBUG
