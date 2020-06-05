@@ -27,8 +27,6 @@ private:
 	cl_context context;
 	cl_kernel kernel;
 	cl_command_queue command_queue;
-
-	cl_mem samplesBuffer, weightsBuffer, outputBuffer;
 	cl_program program;
 
 	std::string readFile(const char* filename, cl_int* err);

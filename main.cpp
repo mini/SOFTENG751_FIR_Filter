@@ -6,12 +6,16 @@ int main(int argc, char** argv) {
 
 	printf("DEBUG MODE\n");
 	std::string filterName = "basictd";
-	filterName = "opencltd";
-	std::string inputsPath = "small.dat";
+	std::string inputsPath = "5GB.dat";
 	std::string weightsPath = "weights.txt";
-	std::string outputPath = "output.dat";
-	std::string expectedOutputPath = "small.basic.dat";
-	//expectedOutputPath = "";
+	std::string outputPath = "5GB.basic.dat";
+	std::string expectedOutputPath = "";
+
+	/* Add another / to toggle comment block
+	filterName = "ocl";
+	expectedOutputPath = "5GB.basic.dat";
+	outputPath = "5GB.ocl.dat";
+	//*/
 	
 #else
 
@@ -30,10 +34,12 @@ int main(int argc, char** argv) {
 	filter::BaseFilter* filter;
 
 	// Keep this up to date!
-	if (filterName == "basictd") {
+	if (filterName == "btd") {
 		filter = new filter::BasicTimeDomain();
-	} else if (filterName == "opencltd") {
+	} else if (filterName == "ocltd") {
 		filter = new filter::OpenCLTimeDomain();
+	} else if (filterName == "oclctd") {
+		filter = new filter::OpenCLChunkedTimeDomain();
 	} else {
 		printf("Filter implementation not found\n");
 		exit(1);
