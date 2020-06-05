@@ -1,9 +1,9 @@
 #pragma once
 
-#include<cstdint>
-#include<string>
-#include<fstream>
-#include<vector>
+#include <cstdint>
+#include <string>
+#include <fstream>
+#include <vector>
 
 #ifndef UNICODE
 #define UNICODE
@@ -14,6 +14,7 @@
 namespace filter {
 	class InputFile;
 	void writeOutputToFile(std::string filename, float* floats, uint64_t length);
+	double compareToFile(float* output, uint64_t length, std::string filename);
 }
 
 class filter::InputFile {

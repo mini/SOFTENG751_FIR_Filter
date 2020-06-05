@@ -3,14 +3,19 @@
 int main(int argc, char** argv) {
 
 #ifdef _DEBUG 
+
 	printf("DEBUG MODE\n");
-	//std::string filterName = "opencltd";
 	std::string filterName = "basictd";
+	filterName = "opencltd";
 	std::string inputsPath = "small.dat";
 	std::string weightsPath = "weights.txt";
 	std::string outputPath = "output.dat";
+	std::string expectedOutputPath = "small.basic.dat";
+	//expectedOutputPath = "";
+	
 #else
-	if (argc < 4) {
+
+	if (argc < 5) {
 		usage();
 	}
 
@@ -18,6 +23,8 @@ int main(int argc, char** argv) {
 	std::string inputsPath(argv[2]);
 	std::string weightsPath(argv[3]);
 	std::string outputPath(argv[4]);
+	std::string expectedOutputPath(argc >= 6 ? argv[5] : "");
+
 #endif
 
 	filter::BaseFilter* filter;
@@ -54,13 +61,16 @@ int main(int argc, char** argv) {
 	printf("Writing output to file\n");
 	filter::writeOutputToFile(outputPath, output, outputLength);
 
-	//TODO Testing
-	//const char* expectedOutputPath;
+	if (expectedOutputPath.length()) {
+		printf("Comparing files: ");
+		double percentMatch = filter::compareToFile(output, outputLength, expectedOutputPath);
+		printf("%.3f%%\n", percentMatch);
+	}
 
 	return 0;
 }
 
 void usage(void) {
-	printf("filter <algorithm> <input file> <weights file> <output file> [expected output file]\n");
+	printf("filter <algorithm> <input file> <weights file> <output file> [expected output file]\n Output and expected file formats must match\n");
 	exit(1);
 }

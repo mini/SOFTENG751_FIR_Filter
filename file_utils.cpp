@@ -93,11 +93,31 @@ void filter::writeOutputToFile(std::string filename, float* floats, uint64_t len
 	if (toTxtFile) {
 		char buffer[24];
 		for (uint64_t i = 0; i < length; i++) {
-			std::snprintf(buffer, sizeof(buffer), "%f\n", floats[i]);
+			std::snprintf(buffer, sizeof(buffer), "%.*f\n", std::numeric_limits<float>::max_digits10, floats[i]);
 			file.write(buffer, strlen(buffer));
 		}
 	} else {
 		file.write(reinterpret_cast<const char*>(floats), sizeof(float) * length);
 	}
 	file.close();
+}
+
+double filter::compareToFile(float* output, uint64_t length, std::string filename) {
+	InputFile expected(filename);
+
+	if (length != expected.length) {
+		return 0.0f;
+	}
+
+	// Turns out comparing floats across architectures leads down a REALLY DEEP rabbit hole.
+	// So we're only going to compare numbers up to 6dp, anything smaller will be equal.
+	// And also just returning a percentage match, not a hard boolean
+	uint64_t closeEnough = 0;
+	for (uint64_t i = 0; i < length; i++) {
+		if (trunc(100000.0 * output[i]) == trunc(100000.0 * expected.samples[i])) {
+			closeEnough++;
+		}
+	}
+
+	return 100 * closeEnough / (double) length;
 }

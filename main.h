@@ -10,6 +10,8 @@
 #include <algorithm>
 
 #include "file_utils.h"
+
+// Kep this up to date!
 #include "basic_filter.h"
 #include "opencl_filter.h"
 
