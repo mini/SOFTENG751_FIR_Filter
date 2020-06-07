@@ -47,12 +47,12 @@ namespace filter {
 
 
 	float* MappedFile::read(uint64_t nSamples, uint64_t offset) {
+		printf("Read: %llu %llu\n", nSamples, offset);
 		//TODO look into large pages? *nix port? FILE_FLAG_OVERLAPPED?
 		DWORD hiOff = (DWORD)((offset & 0xFFFFFFFF00000000llu) >> 32);
 		DWORD loOff = (DWORD)offset;
 		float* samples = reinterpret_cast<float*>(MapViewOfFile(mapHandle, FILE_MAP_READ, hiOff, loOff, nSamples * sizeof(float)));
 		checkWinAPIError("Map view");
-		offset += nSamples * sizeof(float);
 		return samples;
 	}
 
@@ -86,7 +86,7 @@ namespace filter {
 		length = std::count(
 			std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(),
 			'\n'
-		);
+			);
 
 		file.seekg(-1, std::ios::end);
 		char a = 0;
@@ -106,7 +106,7 @@ namespace filter {
 			std::getline(file, line);
 			samples[i] = (float)atof(line.c_str());
 		}
-		
+
 		file.close();
 	}
 
@@ -124,47 +124,66 @@ namespace filter {
 
 	// Other util funcs
 
-	void writeOutputToFile(std::string filename, float* floats, uint64_t length) {
-		int toTxtFile = filename.length() >= EXT_LEN && filename.compare(filename.length() - EXT_LEN, EXT_LEN, TXT_EXT) == 0 ? ~0 : 0;
-		std::ofstream file(filename, std::ios::out | (std::ios::binary & ~toTxtFile));
 
-		if (!file.is_open()) {
-			printf("Can't open file for writing\n");
-			exit(1);
-		}
+	double compareToFile(const std::string& outputPath, const std::string& expectedPath) {
+		InputFile* output = InputFile::get(outputPath);
+		InputFile* expected = InputFile::get(expectedPath);
 
-		if (toTxtFile) {
-			char buffer[24];
-			for (uint64_t i = 0; i < length; i++) {
-				std::snprintf(buffer, sizeof(buffer), "%.*f\n", std::numeric_limits<float>::max_digits10, floats[i]);
-				file.write(buffer, strlen(buffer));
-			}
-		} else {
-			file.write(reinterpret_cast<const char*>(floats), sizeof(float) * length);
-		}
-		file.close();
-	}
-
-	double compareToFile(float* output, uint64_t length, std::string filename) {
-		InputFile* expected = InputFile::get(filename);
-
-		if (length != expected->length) {
+		if (output->length != expected->length) {
 			return 0.0f;
 		}
 
 		// Turns out comparing floats across architectures leads down a REALLY DEEP rabbit hole.
 		// So we're only going to compare numbers up to 6dp, anything smaller will be equal.
 		// And also just returning a percentage match, not a hard boolean
-		float* samples = expected->read();
+		float* outputSamples = output->read();
+		float* expectedSamples = expected->read();
 		uint64_t closeEnough = 0;
-		for (uint64_t i = 0; i < length; i++) {
-			if (trunc(100000.0 * output[i]) == trunc(100000.0 * samples[i])) {
+		for (uint64_t i = 0; i < output->length; i++) {
+			if (fabs(trunc(100000.0 * outputSamples[i]) - trunc(100000.0 * expectedSamples[i])) <= 1.0) {
 				closeEnough++;
 			}
 		}
 
 		delete expected;
-		return 100 * closeEnough / (double)length;
+		return 100 * closeEnough / (double)output->length;
 	}
 
+	OutputFile::OutputFile(const std::string& filename) {
+		if (!filename.empty()) {
+			isTxt = filename.length() >= EXT_LEN && filename.compare(filename.length() - EXT_LEN, EXT_LEN, TXT_EXT) == 0;
+			if (isTxt) {
+				file.open(filename, std::ios::out);
+			} else {
+				file.open(filename, std::ios::out | std::ios::binary);
+			}
+
+			if (!file.is_open()) {
+				printf("Can't open file for writing\n");
+				exit(1);
+			}
+		}
+	}
+
+	void OutputFile::write(float* data, uint64_t length, uint64_t offset) {
+		if (!file.is_open()) {
+			return;
+		}
+
+		if (isTxt) {
+			if (offset) {
+				file << "go back " << offset << " positions\n";
+			}
+			char buffer[24];
+			for (uint64_t i = 0; i < length; i++) {
+				std::snprintf(buffer, sizeof(buffer), "%.*f\n", std::numeric_limits<float>::max_digits10, data[i]);
+				file.write(buffer, strlen(buffer));
+			}
+		} else {
+			if (offset) {
+				file.seekp(offset * sizeof(float));
+			}
+			file.write(reinterpret_cast<const char*>(data), sizeof(float) * length);
+		}
+	}
 }

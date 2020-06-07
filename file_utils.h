@@ -15,8 +15,10 @@ namespace filter {
 	class InputFile;
 	class MappedFile;
 	class TextFile;
-	void writeOutputToFile(std::string filename, float* floats, uint64_t length);
-	double compareToFile(float* output, uint64_t length, std::string filename);
+
+	class OutputFile;
+
+	double compareToFile(const std::string& outputPath, const std::string& expectedPath);
 }
 
 class filter::InputFile {
@@ -55,4 +57,15 @@ public:
 private:
 	std::ifstream file;
 	float* samples;
+};
+
+class filter::OutputFile {
+public:
+	OutputFile(const std::string& filename);
+
+	void write(float* data, uint64_t length, uint64_t offset = 0);
+
+private:
+	bool isTxt = false;
+	std::ofstream file;
 };

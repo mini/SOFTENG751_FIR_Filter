@@ -1,7 +1,16 @@
 #include "basic_filter.h"
 
-void filter::BasicTimeDomain::doFilter(InputFile* inputFile, InputFile* weightsFile, float* output) {
-	doFilter(inputFile->read(), inputFile->length, weightsFile->read(), weightsFile->length, output);
+void filter::BasicTimeDomain::doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile) {
+	float* samples = inputFile->read();
+	float* weights = weightsFile->read();
+	uint64_t outputLength = inputFile->length + weightsFile->length;
+	float* output = new float[outputLength];
+
+	doFilter(samples, inputFile->length, weights, weightsFile->length, output);
+
+	inputFile->free(samples);
+	weightsFile->free(weights);
+	outputFile->write(output, outputLength);
 }
 
 void filter::BasicTimeDomain::doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
