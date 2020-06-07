@@ -99,9 +99,6 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain() {
 }
 
 filter::OpenCLTimeDomain::~OpenCLTimeDomain() {
-	clReleaseMemObject(samplesBuffer);
-	clReleaseMemObject(weightsBuffer);
-	clReleaseMemObject(outputBuffer);
 	clReleaseProgram(program);
 	clReleaseKernel(kernel);
 	clReleaseCommandQueue(command_queue);
@@ -110,11 +107,11 @@ filter::OpenCLTimeDomain::~OpenCLTimeDomain() {
 
 void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
 	// Set args
-	samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
+	cl_mem samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
 	checkError("clCreateBuffer 0");
-	weightsBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, weightsLength * sizeof(float), weights, &err);
+	cl_mem weightsBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, weightsLength * sizeof(float), weights, &err);
 	checkError("clCreateBuffer 1");
-	outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, (inputLength + weightsLength) * sizeof(float), output, &err);
+	cl_mem outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, (inputLength + weightsLength) * sizeof(float), output, &err);
 	checkError("clCreateBuffer 2");
 
 	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &samplesBuffer);
@@ -138,6 +135,10 @@ void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, floa
 
 	err = clEnqueueReadBuffer(command_queue, outputBuffer, CL_TRUE, 0, (inputLength + weightsLength) * sizeof(float), output, 0, NULL, NULL);
 	checkError("clEnqueueReadBuffer");
+
+	clReleaseMemObject(samplesBuffer);
+	clReleaseMemObject(weightsBuffer);
+	clReleaseMemObject(outputBuffer);
 }
 
 

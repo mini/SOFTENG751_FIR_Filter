@@ -5,24 +5,28 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG 
 
 	printf("DEBUG MODE\n");
-	std::string filterName = "basictd";
-	filterName = "opencltd";
-	std::string inputsPath = "small.dat";
+	std::string filterName = "btd";
+	std::string inputsPath = "5GB.dat";
 	std::string weightsPath = "weights.txt";
-	std::string outputPath = "output.dat";
-	std::string expectedOutputPath = "small.basic.dat";
-	//expectedOutputPath = "";
+	std::string outputPath = "";
+	std::string expectedOutputPath = "";
+
+	/* Add another / to toggle comment block
+	filterName = "ocl";
+	expectedOutputPath = "5GB.basic.dat";
+	outputPath = "5GB.ocl.dat";
+	//*/
 	
 #else
 
-	if (argc < 5) {
+	if (argc < 4) {
 		usage();
 	}
 
 	std::string filterName(argv[1]);
 	std::string inputsPath(argv[2]);
 	std::string weightsPath(argv[3]);
-	std::string outputPath(argv[4]);
+	std::string outputPath(argc >= 5 ? argv[4] : "");
 	std::string expectedOutputPath(argc >= 6 ? argv[5] : "");
 
 #endif
@@ -30,10 +34,12 @@ int main(int argc, char** argv) {
 	filter::BaseFilter* filter;
 
 	// Keep this up to date!
-	if (filterName == "basictd") {
+	if (filterName == "btd") {
 		filter = new filter::BasicTimeDomain();
-	} else if (filterName == "opencltd") {
+	} else if (filterName == "ocltd") {
 		filter = new filter::OpenCLTimeDomain();
+	} else if (filterName == "oclctd") {
+		filter = new filter::OpenCLChunkedTimeDomain();
 	} else {
 		printf("Filter implementation not found\n");
 		exit(1);
@@ -58,8 +64,10 @@ int main(int argc, char** argv) {
 	delete inputs;
 	delete weights;
 
-	printf("Writing output to file\n");
-	filter::writeOutputToFile(outputPath, output, outputLength);
+	if (outputPath.length()) {
+		printf("Writing output to file\n");
+		filter::writeOutputToFile(outputPath, output, outputLength);
+	}
 
 	if (expectedOutputPath.length()) {
 		printf("Comparing files: ");
