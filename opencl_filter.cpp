@@ -6,7 +6,6 @@
 	TODO:
 		- Port to C++ version (cl.hpp)
 		- Loop through platforms to get best device, currently hardcoded to first
-		- Add chunking code to handle large files, could do 1gig chunks or paramterised based off of gpu memory
 		- Maybe look into parrallel devices
 */
 

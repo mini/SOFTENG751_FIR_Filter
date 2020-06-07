@@ -84,10 +84,17 @@ namespace filter {
 
 		file.unsetf(std::ios::skipws);
 		length = std::count(
-			std::istreambuf_iterator<char>(file),
-			std::istreambuf_iterator<char>(),
+			std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(),
 			'\n'
 		);
+
+		file.seekg(-1, std::ios::end);
+		char a = 0;
+		file.get(a);
+		if (a != '\n') {
+			length++;
+		}
+
 		file.setf(std::ios::skipws);
 		file.clear();
 		file.seekg(0, std::ios::beg);
