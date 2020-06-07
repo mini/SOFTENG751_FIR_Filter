@@ -45,18 +45,18 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	filter::InputFile *inputs = new filter::InputFile(inputsPath);
-	filter::InputFile *weights = new filter::InputFile(weightsPath);
+	filter::InputFile *inputs = filter::InputFile::get(inputsPath);
+	filter::InputFile *weights = filter::InputFile::get(weightsPath);
 	uint64_t outputLength = inputs->length + weights->length;
 	float* output = new float[outputLength]{ 0 };
 
 	START_TIMER;
-	filter->doFilter(inputs->samples, inputs->length, weights->samples, weights->length, output);
+	filter->doFilter(inputs, weights, output);
 	STOP_TIMER;
 
 #ifdef _DEBUG
 	for (int i = 0; i < std::min(20, (int) outputLength); i++) {
-		printf("%f %f\n", i < inputs->length ? inputs->samples[i] : 0.0, output[i]);
+		printf("%.10f\n", output[i]);
 	}
 #endif
 
