@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
 
 	printf("DEBUG MODE\n");
 	std::string filterName = "oclctd";
-	std::string inputsPath = "1GB.dat";
+	std::string inputsPath = "5GB.dat";
 	std::string weightsPath = "weights.txt";
 	std::string outputPath = "";
 	std::string expectedOutputPath = "";
@@ -75,9 +75,7 @@ int main(int argc, char** argv) {
 		printf("%.3f%%\n", percentMatch);
 	}
 
-//	usage();
-
-	benchMark(filterName,inputsPath);
+	benchMark(filterName, stop - start,inputsPath);
 	return 0;
 }
 
@@ -87,34 +85,16 @@ void usage(void) {
 }
 
 /* bench mark script*/
-void benchMark(std::string filterName, std::string inputsPath) {
-	
-	std::ofstream myfile;
-	
-	//get the time here//
-	/*
-	#define START_TIMER \
-	uintmax_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
-
-	#define STOP_TIMER \
-	uintmax_t stop = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); \
-	printf("Time: %llu\n", stop - start)
-
-	START_TIMER;
-	filter->doFilter(inputs->samples, inputs->length, weights->samples, weights->length, output);
-	STOP_TIMER;
-	*/
-	//long time = start - stop;
-	long time = 0;//hardcoded for now
+void benchMark(std::string filterName, uint64_t time, std::string inputsPath) {
 	
 #ifdef _DEBUG 	
+	std::ofstream myfile;
 	printf("DEBUG MODE in Benchmark \n");
 
-	myfile.open("BenchMark.csv", std::fstream::app);
-	
+	myfile.open("BenchMark.csv", std::ios::app);	
 	myfile << filterName << ",";
 	myfile << time << ",";
-	myfile << inputsPath.substr(0, inputsPath.size() - 4)<<"\n";
+	myfile << inputsPath.substr(0, inputsPath.size() - 4)<<std::endl;
 	myfile.close();
 #endif
 

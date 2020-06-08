@@ -23,5 +23,5 @@
 	uintmax_t stop = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); \
 	printf("Time: %llu\n", stop - start)
 
-void benchMark(std::string filterName, std::string inputsPath);
+void benchMark(std::string filterName, uint64_t time,std::string inputsPath);
 void usage(void);
