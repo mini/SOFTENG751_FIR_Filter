@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 #ifndef UNICODE
 #define UNICODE

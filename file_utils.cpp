@@ -3,6 +3,9 @@
 #define TXT_EXT ".txt"
 #define EXT_LEN 4
 
+#define CHUNK_SIZE 1073741824llu / sizeof(float) // 1GB of floats
+
+
 namespace filter {
 
 	// InputFile (base class)
@@ -26,14 +29,20 @@ namespace filter {
 		wchar_t* widePath = new wchar_t[filename.length() + 1];
 		mbstowcs(widePath, filename.c_str(), filename.length() + 1);
 		fileHandle = CreateFile((LPCWSTR)widePath, FILE_GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		checkWinAPIError("File handle");
+		if (fileHandle == INVALID_HANDLE_VALUE) {
+			checkWinAPIError("File handle");
+		}
 
 		mapHandle = CreateFileMapping(fileHandle, NULL, PAGE_READONLY, 0, 0, (LPCWSTR)widePath);
-		checkWinAPIError("Map handle");
+		if (!mapHandle) {
+			checkWinAPIError("Map handle");
+		}
 
 		DWORD hiSize;
 		DWORD loSize = GetFileSize(fileHandle, &hiSize);
-		checkWinAPIError("File Size");
+		if (loSize == INVALID_FILE_SIZE) {
+			checkWinAPIError("File Size");
+		}
 		length = (((uint64_t)hiSize) << (8 * sizeof(DWORD))) + loSize;
 		length /= sizeof(float);
 
@@ -45,20 +54,21 @@ namespace filter {
 		CloseHandle(fileHandle);
 	}
 
-
 	float* MappedFile::read(uint64_t nSamples, uint64_t offset) {
-		printf("Read: %llu %llu\n", nSamples, offset);
 		//TODO look into large pages? *nix port? FILE_FLAG_OVERLAPPED?
 		DWORD hiOff = (DWORD)((offset & 0xFFFFFFFF00000000llu) >> 32);
 		DWORD loOff = (DWORD)offset;
 		float* samples = reinterpret_cast<float*>(MapViewOfFile(mapHandle, FILE_MAP_READ, hiOff, loOff, nSamples * sizeof(float)));
-		checkWinAPIError("Map view");
+		if (!samples) {
+			checkWinAPIError("Map view");
+		}
 		return samples;
 	}
 
 	void MappedFile::free(void* ptr) {
-		UnmapViewOfFile(ptr);
-		checkWinAPIError("Free");
+		if (!UnmapViewOfFile(ptr)) {
+			checkWinAPIError("Free");
+		}
 	}
 
 	void MappedFile::checkWinAPIError(const char* location) {
@@ -129,25 +139,40 @@ namespace filter {
 		InputFile* output = InputFile::get(outputPath);
 		InputFile* expected = InputFile::get(expectedPath);
 
-		if (output->length != expected->length) {
+		uint64_t outputLength = output->length;
+		if (outputLength != expected->length) {
 			return 0.0f;
 		}
 
-		// Turns out comparing floats across architectures leads down a REALLY DEEP rabbit hole.
-		// So we're only going to compare numbers up to 6dp, anything smaller will be equal.
-		// And also just returning a percentage match, not a hard boolean
-		float* outputSamples = output->read();
-		float* expectedSamples = expected->read();
+		float* outputSamples;
+		float* expectedSamples;
+		uint64_t chunkSize;
 		uint64_t closeEnough = 0;
-		for (uint64_t i = 0; i < output->length; i++) {
-			if (fabs(trunc(100000.0 * outputSamples[i]) - trunc(100000.0 * expectedSamples[i])) <= 1.0) {
-				closeEnough++;
+		for (uint64_t offset = 0; offset < outputLength; offset += CHUNK_SIZE) {
+			chunkSize = std::min(CHUNK_SIZE, outputLength - offset);
+			outputSamples = output->read(chunkSize, offset);
+			expectedSamples = expected->read(chunkSize, offset);
+
+			// Turns out comparing floats across architectures leads down a REALLY DEEP rabbit hole.
+			// So we're only going to compare numbers up to 6dp, anything smaller will be equal.
+			// And also just returning a percentage match, not a hard boolean
+
+			for (uint64_t i = 0; i < chunkSize; i++) {
+				if (fabs(trunc(100000.0 * outputSamples[i]) - trunc(100000.0 * expectedSamples[i])) <= 1.0) {
+					closeEnough++;
+				}
 			}
+
+			output->free(outputSamples);
+			expected->free(expectedSamples);
 		}
 
+		delete output;
 		delete expected;
-		return 100 * closeEnough / (double)output->length;
+		return 100 * closeEnough / (double)outputLength;
 	}
+
+	// Output file
 
 	OutputFile::OutputFile(const std::string& filename) {
 		if (!filename.empty()) {
