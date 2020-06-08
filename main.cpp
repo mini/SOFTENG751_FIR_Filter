@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
 	delete filter;
 	delete inputs;
 	delete weights;
+	delete output;
 
 	if (expectedOutputPath.length()) {
 		printf("Comparing files: ");

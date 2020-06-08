@@ -9,7 +9,7 @@ namespace filter {
 	class OpenCLChunkedTimeDomain;
 }
 
-class filter::OpenCLChunkedTimeDomain : public filter::BasicTimeDomain {
+class filter::OpenCLChunkedTimeDomain : public filter::OpenCLTimeDomain {
 public:
 	void doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile);
 };

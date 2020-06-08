@@ -10,14 +10,18 @@ void filter::OpenCLChunkedTimeDomain::doFilter(InputFile* inputFile, InputFile* 
 	float* samples;
 	float* weights = weightsFile->read();
 
-	uint64_t outputLength = step + weightsFile->length;
+	uint64_t outputLength = std::min(step, inputFile->length) + weightsFile->length;
 	float* output = new float[outputLength];
 
 	for (uint64_t offset = 0; offset < inputFile->length; offset += step) {
 		uint64_t chunkSize = std::min(step, inputFile->length - offset);
+
 		samples = inputFile->read(chunkSize, offset);
-		BasicTimeDomain::doFilter(samples, chunkSize, weights, weightsFile->length, output);
-		outputFile->write(output, outputLength, offset);
+		OpenCLTimeDomain::doFilter(samples, chunkSize, weights, weightsFile->length, output);
 		inputFile->free(samples);
+		
+		outputFile->write(output, chunkSize + weightsFile->length, offset);
 	}
+
+	weightsFile->free(weights);
 }
