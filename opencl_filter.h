@@ -22,7 +22,7 @@ public:
 	~OpenCLTimeDomain();
 	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output);
 
-private:
+protected:
 	cl_int err;
 	cl_context context;
 	cl_kernel kernel;
