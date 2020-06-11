@@ -15,6 +15,7 @@
 #include "basic_filter.h"
 #include "opencl_filter.h"
 #include "opencl_chunked_filter.h"
+#include "opencl_fft_filter.h"
 
 #define START_TIMER \
 	uintmax_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()

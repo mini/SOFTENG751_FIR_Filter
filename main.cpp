@@ -38,8 +38,11 @@ int main(int argc, char** argv) {
 		filter = new filter::BasicTimeDomain();
 	} else if (filterName == "ocltd") {
 		filter = new filter::OpenCLTimeDomain();
-	} else if (filterName == "oclctd") {
+	}
+	else if (filterName == "oclctd") {
 		filter = new filter::OpenCLChunkedTimeDomain();
+	} else if (filterName == "oclfft") {
+		filter = new filter::OpenCLFFT();
 	} else {
 		printf("Filter implementation not found\n");
 		exit(1);
