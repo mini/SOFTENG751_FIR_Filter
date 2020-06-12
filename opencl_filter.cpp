@@ -130,10 +130,12 @@ void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, floa
 	checkError("clSetKernelArg 0");
 	err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &weightsBuffer);
 	checkError("clSetKernelArg 1");
-	err = clSetKernelArg(kernel, 2, sizeof(cl_ulong), &weightsLength);
+	err = clSetKernelArg(kernel, 2, sizeof(cl_ulong), &inputLength);
 	checkError("clSetKernelArg 2");
-	err = clSetKernelArg(kernel, 3, sizeof(cl_mem), &outputBuffer);
+	err = clSetKernelArg(kernel, 3, sizeof(cl_ulong), &weightsLength);
 	checkError("clSetKernelArg 3");
+	err = clSetKernelArg(kernel, 4, sizeof(cl_mem), &outputBuffer);
+	checkError("clSetKernelArg 4");
 
 	// Run
 	const size_t globalDimension = inputLength + weightsLength;
@@ -152,7 +154,6 @@ void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, floa
 	clReleaseMemObject(weightsBuffer);
 	clReleaseMemObject(outputBuffer);
 }
-
 
 
 std::string filter::OpenCLTimeDomain::readFile(const char* filename, cl_int* err) {
