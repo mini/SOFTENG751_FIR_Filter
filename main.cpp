@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 	filter::BaseFilter* filter;
 
 	// Keep this up to date!
-	if (filterName == "oclfft") {
+	if (filterName == "btd") {
 		filter = new filter::BasicTimeDomain();
 	} else if (filterName == "ocltd") {
 		filter = new filter::OpenCLTimeDomain();
