@@ -5,11 +5,11 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG 
 
 	printf("DEBUG MODE\n");
-	std::string filterName = "btd";
-	std::string inputsPath = "5GB.dat";
-	std::string weightsPath = "weights.txt";
-	std::string outputPath = "";
-	std::string expectedOutputPath = "";
+	std::string filterName = "oclfft";
+	std::string inputsPath = "data.dat";
+	std::string weightsPath = "weights.dat";
+	std::string outputPath = "output.txt";
+	std::string expectedOutputPath = "expected_output.txt";
 
 	/* Add another / to toggle comment block
 	filterName = "ocl";
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 	filter::BaseFilter* filter;
 
 	// Keep this up to date!
-	if (filterName == "btd") {
+	if (filterName == "oclfft") {
 		filter = new filter::BasicTimeDomain();
 	} else if (filterName == "ocltd") {
 		filter = new filter::OpenCLTimeDomain();

@@ -10,7 +10,7 @@
 		- Maybe look into parrallel devices
 */
 
-filter::OpenCLTimeDomain::OpenCLTimeDomain() {
+filter::OpenCLTimeDomain::OpenCLTimeDomain(const char* kernel_name) {
 	// Get platforms
 	cl_uint num_platforms = 0;
 	cl_platform_id platform;
@@ -25,7 +25,8 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain() {
 		checkError("clGetPlatformIDs 2");
 		platform = platforms[0];
 		delete[] platforms;
-	} else {
+	}
+	else {
 		printf("No OpenCL runtime/platform installed?\n");
 		exit(err);
 		return;
@@ -54,7 +55,8 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain() {
 		checkError("clGetDeviceIDs GPU 2");
 		device = devices[0];
 		delete[] devices;
-	} else {
+	}
+	else {
 		printf("Switching to CPU\n");
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 0, NULL, &num_devices);
 		if (!num_devices) {
@@ -80,7 +82,7 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain() {
 	checkError("clCreateCommandQueue");
 
 	// Get and build kernel
-	std::string contents = readFile("filter.cl", &err);
+	std::string contents = readFile(std::string(kernel_name) + ".cl", &err);
 	checkError("readFile");
 	const char* src = contents.c_str();
 	size_t source_size = strlen(src);
@@ -94,7 +96,7 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain() {
 	}
 
 	// Create new kernel
-	kernel = clCreateKernel(program, "filter", &err);
+	kernel = clCreateKernel(program, kernel_name, &err);
 	checkError("clCreateKernel");
 }
 
@@ -143,7 +145,7 @@ void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, floa
 
 
 
-std::string filter::OpenCLTimeDomain::readFile(const char* filename, cl_int* err) {
+std::string filter::OpenCLTimeDomain::readFile(std::string filename, cl_int* err) {
 	std::ifstream file(filename, std::ios::binary | std::ios::in);
 	
 	if (!file.is_open()) {
