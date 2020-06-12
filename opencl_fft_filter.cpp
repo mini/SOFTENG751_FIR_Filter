@@ -58,6 +58,10 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 
 	err = clEnqueueReadBuffer(command_queue, timeBuffer, CL_TRUE, 0, FFT_size * sizeof(float), output, 0, NULL, NULL);
 
+	for (int i = 0; i < inputLength + weightsLength - 2; i += 2) {
+		output[i] = output[i + 1];
+	}
+
 	clReleaseMemObject(freqInputBuffer);
 	clReleaseMemObject(freqOutputBuffer);
 	clReleaseMemObject(weightsBuffer);
