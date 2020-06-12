@@ -11,7 +11,7 @@ void filter::OpenCLChunkedTimeDomain::doFilter(InputFile* inputFile, InputFile* 
 	float* weights = weightsFile->read();
 
 	uint64_t outputLength = std::min(step, inputFile->length) + weightsFile->length;
-	float* output = new float[outputLength];
+	float* output = new float[outputLength]();
 
 	for (uint64_t offset = 0; offset < inputFile->length; offset += step) {
 		uint64_t chunkSize = std::min(step, inputFile->length - offset);

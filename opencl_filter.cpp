@@ -108,7 +108,7 @@ void filter::OpenCLTimeDomain::doFilter(InputFile* inputFile, InputFile* weights
 	float* samples = inputFile->read();
 	float* weights = weightsFile->read();
 	uint64_t outputLength = inputFile->length + weightsFile->length;
-	float* output = new float[outputLength];
+	float* output = new float[outputLength]();
 
 	doFilter(samples, inputFile->length, weights, weightsFile->length, output);
 
