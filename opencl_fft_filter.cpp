@@ -34,7 +34,7 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 
 	err = clfftCreateDefaultPlan(&planHandle, context, dim, clLengths);
 	err = clfftSetPlanPrecision(planHandle, CLFFT_SINGLE);
-	err = clfftSetLayout(planHandle, CLFFT_REAL, CLFFT_COMPLEX_INTERLEAVED);
+	err = clfftSetLayout(planHandle, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
 	err = clfftSetResultLocation(planHandle, CLFFT_OUTOFPLACE);
 	err = clfftBakePlan(planHandle, 1, &command_queue, NULL, NULL);
 
@@ -52,15 +52,11 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 	checkError("clEnqueueNDRangeKernel");
 	err = clFinish(command_queue);
 
-	err = clfftSetLayout(planHandle, CLFFT_COMPLEX_INTERLEAVED, CLFFT_REAL);
+	err = clfftSetLayout(planHandle, CLFFT_HERMITIAN_INTERLEAVED, CLFFT_REAL);
 	err = clfftBakePlan(planHandle, 1, &command_queue, NULL, NULL);
 	err = clfftEnqueueTransform(planHandle, CLFFT_BACKWARD, 1, &command_queue, 0, NULL, NULL, &freqOutputBuffer, &timeBuffer, NULL);
 
 	err = clEnqueueReadBuffer(command_queue, timeBuffer, CL_TRUE, 0, FFT_size * sizeof(float), output, 0, NULL, NULL);
-
-	for (int i = 0; i < inputLength + weightsLength - 2; i += 2) {
-		output[i] = output[i + 1];
-	}
 
 	clReleaseMemObject(freqInputBuffer);
 	clReleaseMemObject(freqOutputBuffer);
