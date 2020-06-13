@@ -16,7 +16,7 @@ dir/
 
 executable = ".//x64//Release//SE751_filter.exe"
 repeats = 3;
-filters = ["btd", "ocltd", "oclctd"];
+filters = ["btd", "ocltd", "oclctd", "oclfft", "oclcfft"];
 benchmark_files = "./benchmark_files/"
 weights = "weights.dat"
 inputs = [] # insert files to override running all
