@@ -15,7 +15,7 @@ namespace filter {
 		if (isTxt) {
 			return new TextFile(filename);
 		} else {
-			return new MappedFile(filename);
+			return new BinaryFile(filename);
 		}
 	}
 
@@ -25,62 +25,28 @@ namespace filter {
 
 	// MappedFile
 
-	MappedFile::MappedFile(const std::string& filename) {
-		wchar_t* widePath = new wchar_t[filename.length() + 1];
-		mbstowcs(widePath, filename.c_str(), filename.length() + 1);
-		fileHandle = CreateFile((LPCWSTR)widePath, FILE_GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (fileHandle == INVALID_HANDLE_VALUE) {
-			checkWinAPIError("File handle");
+	BinaryFile::BinaryFile(const std::string& filename) {
+		file.open(filename, std::ios::binary | std::ios::ate);
+		if (!file.is_open()) {
+			printf("File not found: %s\n", filename.c_str());
+			exit(1);
 		}
-
-		mapHandle = CreateFileMapping(fileHandle, NULL, PAGE_READONLY, 0, 0, (LPCWSTR)widePath);
-		if (!mapHandle) {
-			checkWinAPIError("Map handle");
-		}
-
-		DWORD hiSize;
-		DWORD loSize = GetFileSize(fileHandle, &hiSize);
-		if (loSize == INVALID_FILE_SIZE) {
-			checkWinAPIError("File Size");
-		}
-		length = (((uint64_t)hiSize) << (8 * sizeof(DWORD))) + loSize;
-		length /= sizeof(float);
-
-		delete[] widePath;
+		length = file.tellg() / sizeof(float);		
 	}
 
-	MappedFile::~MappedFile() {
-		CloseHandle(mapHandle);
-		CloseHandle(fileHandle);
+	BinaryFile::~BinaryFile() {
+		file.close();
 	}
 
-	float* MappedFile::read(uint64_t nSamples, uint64_t offset) {
-		//TODO look into large pages? *nix port? FILE_FLAG_OVERLAPPED?
-		DWORD hiOff = (DWORD)((offset & 0xFFFFFFFF00000000llu) >> 32);
-		DWORD loOff = (DWORD)offset;
-		float* samples = reinterpret_cast<float*>(MapViewOfFile(mapHandle, FILE_MAP_READ, hiOff, loOff, nSamples * sizeof(float)));
-		if (!samples) {
-			checkWinAPIError("Map view");
-		}
+	float* BinaryFile::read(uint64_t nSamples, uint64_t offset) {
+		float* samples = new float[nSamples * sizeof(float)];
+		file.seekg(offset * sizeof(float), std::ios::beg);
+		file.read(reinterpret_cast<char*>(samples), nSamples * sizeof(float));
 		return samples;
 	}
 
-	void MappedFile::free(void* ptr) {
-		if (!UnmapViewOfFile(ptr)) {
-			checkWinAPIError("Free");
-		}
-	}
-
-	void MappedFile::checkWinAPIError(const char* location) {
-		DWORD errorID = GetLastError();
-		if (errorID) {
-			LPSTR messageBuffer = nullptr;
-			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-			std::string message(messageBuffer, size);
-			LocalFree(messageBuffer);
-			printf("%s: %s (%lu)", location, message.c_str(), errorID);
-			exit(errorID);
-		}
+	void BinaryFile::free(void* ptr) {
+		delete[] ptr;
 	}
 
 	// TextFile

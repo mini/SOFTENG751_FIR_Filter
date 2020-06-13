@@ -18,19 +18,20 @@ namespace filter {
 
 class filter::OpenCLTimeDomain : public filter::BaseFilter {
 public:
-	OpenCLTimeDomain();
+	OpenCLTimeDomain(const char* kernel_name);
+	OpenCLTimeDomain() : OpenCLTimeDomain("filter") {}
 	~OpenCLTimeDomain();
 	void doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile);
 	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output);
 
-private:
+protected:
 	cl_int err;
 	cl_context context;
-	cl_kernel kernel;
 	cl_command_queue command_queue;
 	cl_program program;
 
-	std::string readFile(const char* filename, cl_int* err);
+	std::string readFile(std::string filename, cl_int* err);
 	void checkError(const char* name);
 	static const char* getErrorString(cl_int error);
+	cl_kernel kernel;
 };

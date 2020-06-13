@@ -14,9 +14,9 @@ dir/
 # -------- Config --------
 # Change as required
 
-executable = ".//x64//Release//SE751_filter.exe"
+executable = ".//x64//Release//FIRfilter.exe"
 repeats = 3;
-filters = ["btd", "ocltd", "oclctd"];
+filters = ["ocltd", "oclctd", "oclcfft"];
 benchmark_files = "./benchmark_files/"
 weights = "weights.dat"
 inputs = [] # insert files to override running all

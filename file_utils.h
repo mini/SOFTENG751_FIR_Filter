@@ -14,7 +14,7 @@
 
 namespace filter {
 	class InputFile;
-	class MappedFile;
+	class BinaryFile;
 	class TextFile;
 
 	class OutputFile;
@@ -33,16 +33,16 @@ public:
 	virtual void free(void* ptr) = 0;
 };
 
-class filter::MappedFile : public filter::InputFile {
+class filter::BinaryFile : public filter::InputFile {
 public:
-	MappedFile(const std::string& filename);
-	~MappedFile();
+	BinaryFile(const std::string& filename);
+	~BinaryFile();
 
 	float* read(uint64_t offset, uint64_t samples);
 	void free(void* ptr);
 
 private:
-	HANDLE fileHandle, mapHandle;
+	std::ifstream file;
 
 	void checkWinAPIError(const char* location);
 };

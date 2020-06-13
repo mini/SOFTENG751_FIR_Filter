@@ -27,3 +27,4 @@ Releases/
 *.lo
 *.o
 *.obj
+*.dll
