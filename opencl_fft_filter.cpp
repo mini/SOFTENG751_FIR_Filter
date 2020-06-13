@@ -8,8 +8,8 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 	size_t clLengths[1] = { FFT_size };
 	const size_t globalDimension = FFT_size;
 
-	float* padded_input = (float*)calloc(FFT_size, sizeof(float));
-	float* padded_weights = (float*)calloc(FFT_size, sizeof(float));
+	float* padded_input = new float[FFT_size]();
+	float* padded_weights = new float[FFT_size]();
 
 	memcpy(padded_input, input, inputLength * sizeof(float));
 	memcpy(padded_weights, weights, weightsLength * sizeof(float));
@@ -39,7 +39,7 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 	err = clfftEnqueueTransform(forwardPlan, CLFFT_FORWARD, 1, &command_queue, 0, NULL, NULL, &weightsBuffer, &freqWeightsBuffer, NULL);
 	err = clFinish(command_queue);
 
-	OpenCLFFT::doFilter(padded_input, freqWeightsBuffer, output, FFT_size, weightsLength, FFT_size, forwardPlan, backwardPlan);
+	OpenCLFFT::doFilter(input, freqWeightsBuffer, output, inputLength, weightsLength, FFT_size, forwardPlan, backwardPlan);
 
 	clReleaseMemObject(weightsBuffer);
 	clReleaseMemObject(freqWeightsBuffer);
@@ -75,9 +75,27 @@ void filter::OpenCLFFT::doFilter(float* input, cl_mem freqWeightsBuffer, float* 
 	checkError("clEnqueueNDRangeKernel");
 	err = clFinish(command_queue);
 
+	// sequential 
+	//cl_float2* freqInput = new cl_float2[FFT_size]();
+	//cl_float2* freqWeights = new cl_float2[FFT_size]();
+	//cl_float2* freqOutput = new cl_float2[FFT_size]();
+	//err = clEnqueueReadBuffer(command_queue, freqWeightsBuffer, CL_TRUE, 0, FFT_size * sizeof(cl_float2), freqWeights, 0, NULL, NULL);
+	//err = clEnqueueReadBuffer(command_queue, freqInputBuffer, CL_TRUE, 0, FFT_size * sizeof(cl_float2), freqInput, 0, NULL, NULL);
+	//for (int i = 0; i < FFT_size; i++) {
+	//	freqOutput[i].x = freqInput[i].x * freqWeights[i].x - freqInput[i].y * freqWeights[i].y;
+	//	freqOutput[i].y = freqInput[i].x * freqWeights[i].y + freqInput[i].y * freqWeights[i].x;
+	//}
+	//cl_mem freqOutputBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, FFT_size * sizeof(cl_float2), freqOutput, &err);
+	//checkError("clCreateBuffer 0");
+	//delete[] freqInput;
+	//delete[] freqWeights;
+	//delete[] freqOutput;
+
 	// ifft on output
 	err = clfftEnqueueTransform(backwardsPlan, CLFFT_BACKWARD, 1, &command_queue, 0, NULL, NULL, &freqOutputBuffer, &timeOutputBuffer, NULL);
 	err = clEnqueueReadBuffer(command_queue, timeOutputBuffer, CL_TRUE, 0, (inputLength + weightsLength - 1) * sizeof(float), output, 0, NULL, NULL);
+
+	
 
 	clReleaseMemObject(freqInputBuffer);
 	clReleaseMemObject(freqOutputBuffer);

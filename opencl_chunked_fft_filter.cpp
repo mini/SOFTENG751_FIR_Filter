@@ -1,7 +1,7 @@
 #include "opencl_chunked_fft_filter.h"
 
-//TODO Remove this, either find optimal or some equation based off of GPU specs - must be ^2
-#define CHUNK_SIZE 1073741824llu / sizeof(float) // 1GB of floats
+// This is the limit to how large a clFFT FFT can be
+#define CHUNK_SIZE 16777216llu / sizeof(float) // 1GB of floats
 
 
 void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile) {
@@ -23,7 +23,7 @@ void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weights
 	size_t clLengths[1] = { fftSize };
 	const size_t globalDimension = fftSize;
 
-	float* padded_weights = (float*)calloc(fftSize, sizeof(float));
+	float* padded_weights = new float[fftSize]();
 	memcpy(padded_weights, weights, weightsFile->length * sizeof(float));
 
 	clfftSetupData fftSetup;
