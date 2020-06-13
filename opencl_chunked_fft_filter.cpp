@@ -1,13 +1,13 @@
 #include "opencl_chunked_fft_filter.h"
 
-//TODO Remove this, either find optimal or some equation based off of GPU specs
-#define CHUNK_SIZE 4000llu / sizeof(float) // 1GB of floats
+//TODO Remove this, either find optimal or some equation based off of GPU specs - must be ^2
+#define CHUNK_SIZE 1073741824llu / sizeof(float) // 1GB of floats
 
 
 void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile) {
 	uint64_t step = CHUNK_SIZE;
-
-	float* samples = inputFile->read();
+	
+	float* samples;
 	float* weights = weightsFile->read();
 
 
@@ -52,14 +52,14 @@ void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weights
 
 	for (uint64_t offset = 0; offset < inputFile->length; offset += step) {
 		uint64_t chunkSize = std::min(fftSize, inputFile->length - offset);
+		samples = inputFile->read(chunkSize, offset);
 
-		OpenCLFFT::doFilter(samples + offset, freqWeightsBuffer, output, chunkSize, weightsFile->length, fftSize, forwardPlan, backwardPlan);
-
+		OpenCLFFT::doFilter(samples, freqWeightsBuffer, output, chunkSize, weightsFile->length, fftSize, forwardPlan, backwardPlan);
+		inputFile->free(samples);
 		outputFile->write(output, chunkSize + overlap, offset);
 	}
 	
 	weightsFile->free(weights);
-	inputFile->free(samples);
 	clReleaseMemObject(weightsBuffer);
 	clReleaseMemObject(freqWeightsBuffer);
 	err = clfftDestroyPlan(&forwardPlan);
