@@ -5,10 +5,10 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG 
 
 	printf("DEBUG MODE\n");
-	std::string filterName = "oclctd";
-	std::string inputsPath = "5GB.dat";
-	std::string weightsPath = "weights.txt";
-	std::string outputPath = "";
+	std::string filterName = "oclcfft";
+	std::string inputsPath = "data.dat";
+	std::string weightsPath = "weights.dat";
+	std::string outputPath = "output.txt";
 	std::string expectedOutputPath = "";
 
 	/* Add another / to toggle comment block
@@ -42,6 +42,8 @@ int main(int argc, char** argv) {
 		filter = new filter::OpenCLChunkedTimeDomain();
 	} else if (filterName == "oclfft") {
 		filter = new filter::OpenCLFFT();
+	} else if (filterName == "oclcfft") {
+		filter = new filter::OpenCLChunkedFFT();
 	} else {
 		printf("Filter implementation not found\n");
 		exit(1);
