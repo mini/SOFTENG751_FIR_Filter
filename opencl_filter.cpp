@@ -6,7 +6,6 @@
 	TODO:
 		- Port to C++ version (cl.hpp)
 		- Loop through platforms to get best device, currently hardcoded to first
-		- Add chunking code to handle large files, could do 1gig chunks or paramterised based off of gpu memory
 		- Maybe look into parrallel devices
 */
 
@@ -25,8 +24,7 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain(const char* kernel_name) {
 		checkError("clGetPlatformIDs 2");
 		platform = platforms[0];
 		delete[] platforms;
-	}
-	else {
+	} else {
 		printf("No OpenCL runtime/platform installed?\n");
 		exit(err);
 		return;
@@ -55,8 +53,7 @@ filter::OpenCLTimeDomain::OpenCLTimeDomain(const char* kernel_name) {
 		checkError("clGetDeviceIDs GPU 2");
 		device = devices[0];
 		delete[] devices;
-	}
-	else {
+	} else {
 		printf("Switching to CPU\n");
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 0, NULL, &num_devices);
 		if (!num_devices) {
@@ -107,6 +104,19 @@ filter::OpenCLTimeDomain::~OpenCLTimeDomain() {
 	clReleaseContext(context);
 }
 
+void filter::OpenCLTimeDomain::doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile) {
+	float* samples = inputFile->read();
+	float* weights = weightsFile->read();
+	uint64_t outputLength = inputFile->length + weightsFile->length;
+	float* output = new float[outputLength]();
+
+	doFilter(samples, inputFile->length, weights, weightsFile->length, output);
+
+	inputFile->free(samples);
+	weightsFile->free(weights);
+	outputFile->write(output, outputLength);
+}
+
 void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
 	// Set args
 	cl_mem samplesBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
@@ -120,10 +130,12 @@ void filter::OpenCLTimeDomain::doFilter(float* input, uint64_t inputLength, floa
 	checkError("clSetKernelArg 0");
 	err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &weightsBuffer);
 	checkError("clSetKernelArg 1");
-	err = clSetKernelArg(kernel, 2, sizeof(cl_ulong), &weightsLength);
+	err = clSetKernelArg(kernel, 2, sizeof(cl_ulong), &inputLength);
 	checkError("clSetKernelArg 2");
-	err = clSetKernelArg(kernel, 3, sizeof(cl_mem), &outputBuffer);
+	err = clSetKernelArg(kernel, 3, sizeof(cl_ulong), &weightsLength);
 	checkError("clSetKernelArg 3");
+	err = clSetKernelArg(kernel, 4, sizeof(cl_mem), &outputBuffer);
+	checkError("clSetKernelArg 4");
 
 	// Run
 	const size_t globalDimension = inputLength + weightsLength;

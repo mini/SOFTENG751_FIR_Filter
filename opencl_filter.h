@@ -21,6 +21,7 @@ public:
 	OpenCLTimeDomain(const char* kernel_name);
 	OpenCLTimeDomain() : OpenCLTimeDomain("filter") {}
 	~OpenCLTimeDomain();
+	void doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile);
 	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output);
 
 protected:
