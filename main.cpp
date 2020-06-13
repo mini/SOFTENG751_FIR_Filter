@@ -45,33 +45,22 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	filter::InputFile *inputs = new filter::InputFile(inputsPath);
-	filter::InputFile *weights = new filter::InputFile(weightsPath);
-	uint64_t outputLength = inputs->length + weights->length;
-	float* output = new float[outputLength]{ 0 };
+	filter::InputFile *inputs = filter::InputFile::get(inputsPath);
+	filter::InputFile *weights = filter::InputFile::get(weightsPath);
+	filter::OutputFile *output = new filter::OutputFile(outputPath);
 
 	START_TIMER;
-	filter->doFilter(inputs->samples, inputs->length, weights->samples, weights->length, output);
+	filter->doFilter(inputs, weights, output);
 	STOP_TIMER;
-
-#ifdef _DEBUG
-	for (int i = 0; i < std::min(20, (int) outputLength); i++) {
-		printf("%f %f\n", i < inputs->length ? inputs->samples[i] : 0.0, output[i]);
-	}
-#endif
 
 	delete filter;
 	delete inputs;
 	delete weights;
-
-	if (outputPath.length()) {
-		printf("Writing output to file\n");
-		filter::writeOutputToFile(outputPath, output, outputLength);
-	}
+	delete output;
 
 	if (expectedOutputPath.length()) {
 		printf("Comparing files: ");
-		double percentMatch = filter::compareToFile(output, outputLength, expectedOutputPath);
+		double percentMatch = filter::compareToFile(outputPath, expectedOutputPath);
 		printf("%.3f%%\n", percentMatch);
 	}
 
@@ -84,14 +73,12 @@ void usage(void) {
 	exit(1);
 }
 
-/* bench mark script*/
 void benchMark(std::string filterName, uint64_t time, std::string inputsPath) {
 	
 #ifdef _DEBUG 	
-	std::ofstream myfile;
-	printf("DEBUG MODE in Benchmark \n");
+	printf("Writing to CSV\n");
+	std::ofstream myfile("BenchMark.csv", std::ios::app);
 
-	myfile.open("BenchMark.csv", std::ios::app);	
 	myfile << filterName << ",";
 	myfile << time << ",";
 	myfile << inputsPath.substr(0, inputsPath.size() - 4)<<std::endl;

@@ -20,6 +20,7 @@ class filter::OpenCLTimeDomain : public filter::BaseFilter {
 public:
 	OpenCLTimeDomain();
 	~OpenCLTimeDomain();
+	void doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile);
 	void doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output);
 
 private:
