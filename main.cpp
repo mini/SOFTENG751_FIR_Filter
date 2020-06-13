@@ -68,7 +68,6 @@ int main(int argc, char** argv) {
 		printf("%.3f%%\n", percentMatch);
 	}
 
-	benchMark(filterName, stop - start,inputsPath);
 	return 0;
 }
 
@@ -76,18 +75,3 @@ void usage(void) {
 	printf("filter <algorithm> <input file> <weights file> <output file> [expected output file]\n Output and expected file formats must match\n");
 	exit(1);
 }
-
-void benchMark(std::string filterName, uint64_t time, std::string inputsPath) {
-	
-#ifdef _DEBUG 	
-	printf("Writing to CSV\n");
-	std::ofstream myfile("BenchMark.csv", std::ios::app);
-
-	myfile << filterName << ",";
-	myfile << time << ",";
-	myfile << inputsPath.substr(0, inputsPath.size() - 4)<<std::endl;
-	myfile.close();
-#endif
-
-}
-

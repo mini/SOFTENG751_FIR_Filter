@@ -2,6 +2,9 @@
 *.dat
 *.txt
 *.wav
+*.csv
+*.bak
+
 
 # Visual Studio
 *.sln
