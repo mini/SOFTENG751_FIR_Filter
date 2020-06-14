@@ -1,6 +1,7 @@
 #include "opencl_fft_filter.h"
 
 void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weights, uint64_t weightsLength, float* output) {
+	// FFT size is smallest power of 2 larger than the size of the output
 	uint64_t FFT_size = pow(2, (ceil(log(inputLength + weightsLength - 1) / log(2))));
 	clfftPlanHandle forwardPlan;
 	clfftPlanHandle backwardPlan;
@@ -8,6 +9,7 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 	size_t clLengths[1] = { FFT_size };
 	const size_t globalDimension = FFT_size;
 
+	// padding inputs and weights to be same size as FFT
 	float* padded_input = new float[FFT_size]();
 	float* padded_weights = new float[FFT_size]();
 
@@ -50,10 +52,17 @@ void filter::OpenCLFFT::doFilter(float* input, uint64_t inputLength, float* weig
 }
 
 void filter::OpenCLFFT::doFilter(float* input, cl_mem freqWeightsBuffer, float* output, uint64_t inputLength, uint64_t weightsLength, uint64_t FFT_size, clfftPlanHandle forwardPlan, clfftPlanHandle backwardsPlan) {
+	// pad input to fft size if not already
+	if (FFT_size > inputLength) {
+		float* padded_input = new float[FFT_size]();
+		memcpy(padded_input, input, inputLength * sizeof(float));
+		input = padded_input;
+	}
+
 	// fft on input
-	cl_mem timeBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, inputLength * sizeof(float), input, &err);
+	cl_mem timeBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, FFT_size * sizeof(float), input, &err);
 	checkError("clCreateBuffer 0");
-	cl_mem timeOutputBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, (inputLength + weightsLength - 1) * sizeof(float), NULL, &err);
+	cl_mem timeOutputBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, (FFT_size + weightsLength - 1) * sizeof(float), NULL, &err);
 	checkError("clCreateBuffer 0");
 	cl_mem freqInputBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, FFT_size * sizeof(cl_float2), NULL, &err);
 	checkError("clCreateBuffer 0");
@@ -61,6 +70,7 @@ void filter::OpenCLFFT::doFilter(float* input, cl_mem freqWeightsBuffer, float* 
 	checkError("clCreateBuffer 0");
 
 	err = clfftEnqueueTransform(forwardPlan, CLFFT_FORWARD, 1, &command_queue, 0, NULL, NULL, &timeBuffer, &freqInputBuffer, NULL);
+
 	
 	const size_t globalDimension = FFT_size;
 	
@@ -93,7 +103,12 @@ void filter::OpenCLFFT::doFilter(float* input, cl_mem freqWeightsBuffer, float* 
 
 	// ifft on output
 	err = clfftEnqueueTransform(backwardsPlan, CLFFT_BACKWARD, 1, &command_queue, 0, NULL, NULL, &freqOutputBuffer, &timeOutputBuffer, NULL);
-	err = clEnqueueReadBuffer(command_queue, timeOutputBuffer, CL_TRUE, 0, (inputLength + weightsLength - 1) * sizeof(float), output, 0, NULL, NULL);
+	if (FFT_size > inputLength) {
+		err = clEnqueueReadBuffer(command_queue, timeOutputBuffer, CL_TRUE, 0, (inputLength + weightsLength - 1) * sizeof(float), output, 0, NULL, NULL);
+	}
+	else {
+		err = clEnqueueReadBuffer(command_queue, timeOutputBuffer, CL_TRUE, 0, FFT_size * sizeof(float), output, 0, NULL, NULL);
+	}
 
 	
 

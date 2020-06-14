@@ -15,8 +15,8 @@ dir/
 # Change as required
 
 executable = ".//x64//Release//FIRfilter.exe"
-repeats = 3;
-filters = ["ocltd", "oclctd", "oclcfft"];
+repeats = 2;
+filters = ["oclcfft", "oclctd"];
 benchmark_files = "./benchmark_files/"
 weights = "weights.dat"
 inputs = [] # insert files to override running all
