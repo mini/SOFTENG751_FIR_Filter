@@ -1,7 +1,7 @@
 #include "opencl_chunked_fft_filter.h"
 
 // This is the limit to how large a clFFT FFT can be
-#define CHUNK_SIZE 16777216llu / sizeof(float) // 1GB of floats
+#define CHUNK_SIZE 16777216llu / sizeof(float) 
 
 
 void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weightsFile, OutputFile* outputFile) {
@@ -9,9 +9,8 @@ void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weights
 	
 	float* samples;
 	float* weights = weightsFile->read();
-
-
 	uint64_t overlap = weightsFile->length - 1;
+	// FFT size is the smallest power of 2 larger than the chunked input size 
 	uint64_t fftSize = pow(2, (ceil(log(std::min(step, inputFile->length) + overlap) / log(2))));
 	step = fftSize - overlap;
 	uint64_t outputLength = std::min(fftSize, inputFile->length) + overlap;
@@ -23,6 +22,7 @@ void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weights
 	size_t clLengths[1] = { fftSize };
 	const size_t globalDimension = fftSize;
 
+	// pad weights with zeros before FFT to match fftSize
 	float* padded_weights = new float[fftSize]();
 	memcpy(padded_weights, weights, weightsFile->length * sizeof(float));
 
@@ -53,7 +53,6 @@ void filter::OpenCLChunkedFFT::doFilter(InputFile* inputFile, InputFile* weights
 	for (uint64_t offset = 0; offset < inputFile->length; offset += step) {
 		uint64_t chunkSize = std::min(fftSize, inputFile->length - offset);
 		samples = inputFile->read(chunkSize, offset);
-
 		OpenCLFFT::doFilter(samples, freqWeightsBuffer, output, chunkSize, weightsFile->length, fftSize, forwardPlan, backwardPlan);
 		inputFile->free(samples);
 		outputFile->write(output, chunkSize + overlap, offset);

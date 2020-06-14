@@ -6,9 +6,9 @@ int main(int argc, char** argv) {
 
 	printf("DEBUG MODE\n");
 	std::string filterName = "oclcfft";
-	std::string inputsPath = "data.dat";
+	std::string inputsPath = "benchmark_files/100mb.dat";
 	std::string weightsPath = "weights.dat";
-	std::string outputPath = "output.txt";
+	std::string outputPath = "clfft.txt";
 	std::string expectedOutputPath = "";
 
 	/* Add another / to toggle comment block
@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
 	std::string weightsPath(argv[3]);
 	std::string outputPath(argc >= 5 ? argv[4] : "");
 	std::string expectedOutputPath(argc >= 6 ? argv[5] : "");
+
 
 #endif
 	
