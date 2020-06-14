@@ -11,15 +11,17 @@ dir/
  - benchmark_TIMESTAMP.csv (will be generated)
 """
 
+print("If you get errors, check this script's config!")
+
 # -------- Config --------
 # Change as required
 
-executable = ".//x64//Release//FIRfilter.exe"
+executable = ".//x64//Release//SE751_filter.exe"
 repeats = 3;
-filters = ["ocltd", "oclctd", "oclcfft"];
+filters = ["oclctd", "oclcfft"];
 benchmark_files = "./benchmark_files/"
 weights = "weights.dat"
-inputs = [] # insert files to override running all
+inputs = ["10MB.dat", "100MB.dat", "1GB.dat", "5GB.dat"]#, "20GB.dat"] # insert files to override running all
 # -----------
 
 import os
@@ -40,7 +42,7 @@ with open(f"benchmark_{datetime.now().strftime('%H-%M-%S')}.csv", 'a') as csv:
             for i in range(0, repeats):
                 print(f"Run #{i+1} - {filter} on {inputFile}")
 
-                p = subprocess.Popen([executable, filter, benchmark_files + inputFile, benchmark_files + weights, benchmark_files + "output.dat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen([executable, filter, benchmark_files + inputFile, benchmark_files + weights], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = p.communicate()
 
                 if p.wait() != 0:
@@ -51,4 +53,5 @@ with open(f"benchmark_{datetime.now().strftime('%H-%M-%S')}.csv", 'a') as csv:
                     line = line.decode('ascii')
                     if line.startswith("Time: "):
                         time = int(line[6:])
+                        print(f"{time}ms")
                         csv.write(f"{filter},{inputFile},{time}\n")
