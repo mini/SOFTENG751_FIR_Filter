@@ -41,4 +41,4 @@ Main project dependencies:
 - OpenCL SDK (provided by Intel/AMD/NVIDIA)
 - [clFFT](https://github.com/clMathLibraries/clFFT/)
 
-The indiviual files in `./generators/` are individual tools. No dependancies there.
+The individual files in `./generators/` are standalone tools. No dependancies there.
